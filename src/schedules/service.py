@@ -4,7 +4,7 @@ from typing import List, Optional
 from .database_models import ScheduleModel as ScheduleModel
 from ..tasks.database_models import ScheduledTaskModel, TaskModel 
 from .models import ScheduleCreate, ScheduleUpdate
-from ..tasks.models import ScheduledTaskCreate, ScheduledTaskUpdate
+from ..tasks.models import ScheduledTaskPdtCreate, ScheduledTaskPdtUpdate
 
 
 class ScheduleService:
@@ -51,7 +51,7 @@ class ScheduleService:
         self.db.commit()
         return True
 
-    def create_scheduled_task(self, scheduled_task: ScheduledTaskCreate) -> Optional[ScheduledTaskModel]:
+    def create_scheduled_task(self, scheduled_task: ScheduledTaskPdtCreate) -> Optional[ScheduledTaskModel]:
         """Create a new scheduled task"""
         # Check if task exists
         task = self.db.query(TaskModel).filter(TaskModel.id == scheduled_task.task_id).first()
@@ -95,7 +95,7 @@ class ScheduleService:
     def update_scheduled_task(
         self, 
         scheduled_task_id: int, 
-        scheduled_task_update: ScheduledTaskUpdate
+        scheduled_task_update: ScheduledTaskPdtUpdate
     ) -> Optional[ScheduledTaskModel]:
         """Update a scheduled task"""
         scheduled_task = self.get_scheduled_task_by_id(scheduled_task_id)

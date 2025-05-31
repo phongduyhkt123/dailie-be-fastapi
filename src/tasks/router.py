@@ -11,7 +11,7 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 # Task definition endpoints
 @router.post("/", response_model=pydantic_models.TaskModel)
-def create_task(task: pydantic_models.TaskCreate, db: Session = Depends(get_db)):
+def create_task(task: pydantic_models.TaskPdtCreate, db: Session = Depends(get_db)):
     """Create a new task definition"""
     service = TaskService(db)
     return service.create_task(task)
@@ -56,7 +56,7 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
 
 # Scheduled task endpoints
 @router.post("/scheduled", response_model=pydantic_models.ScheduledTaskModel)
-def create_scheduled_task(scheduled_task: pydantic_models.ScheduledTaskCreate, db: Session = Depends(get_db)):
+def create_scheduled_task(scheduled_task: pydantic_models.ScheduledTaskPdtCreate, db: Session = Depends(get_db)):
     """Create a new scheduled task"""
     service = TaskService(db)
     result = service.create_scheduled_task(scheduled_task)

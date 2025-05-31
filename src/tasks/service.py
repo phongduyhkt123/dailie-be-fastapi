@@ -2,18 +2,21 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
-from tasks.models import TaskCreate
-
+from .models import (
+    TaskPdtCreate, 
+    TaskPdtUpdate, 
+    ScheduledTaskPdtCreate, 
+    ScheduledTaskPdtUpdate,
+    TaskStatus
+)
 from .database_models import TaskModel, ScheduledTaskModel
-# Import Pydantic models from the standalone models.py file
-from .models import TaskModel, ScheduledTaskModel
 
 
 class TaskService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_task(self, task: TaskCreate) -> TaskModel:
+    def create_task(self, task: TaskPdtCreate) -> TaskModel:
         """Create a new task definition"""
         db_task = TaskModel(
             title=task.title,
@@ -35,7 +38,7 @@ class TaskService:
         """Get a specific task by ID"""
         return self.db.query(TaskModel).filter(TaskModel.id == task_id).first()
 
-    def update_task(self, task_id: int, task_update: TaskUpdate) -> Optional[TaskModel]:
+    def update_task(self, task_id: int, task_update: TaskPdtUpdate) -> Optional[TaskModel]:
         """Update a task"""
         task = self.get_task_by_id(task_id)
         if not task:
@@ -63,7 +66,7 @@ class TaskService:
         self.db.commit()
         return True
 
-    def create_scheduled_task(self, scheduled_task: ScheduledTaskCreate) -> Optional[ScheduledTaskModel]:
+    def create_scheduled_task(self, scheduled_task: ScheduledTaskPdtCreate) -> Optional[ScheduledTaskModel]:
         """Create a new scheduled task"""
         # Check if task exists
         task = self.get_task_by_id(scheduled_task.task_id)
@@ -99,7 +102,7 @@ class TaskService:
     def update_scheduled_task(
         self, 
         scheduled_task_id: int, 
-        scheduled_task_update: ScheduledTaskUpdate
+        scheduled_task_update: ScheduledTaskPdtUpdate
     ) -> Optional[ScheduledTaskModel]:
         """Update a scheduled task"""
         scheduled_task = self.get_scheduled_task_by_id(scheduled_task_id)

@@ -4,8 +4,8 @@ from typing import List, Optional
 from datetime import datetime, date
 
 from ..core.database import get_db
-from .database_models import UserTaskStreak as UserTaskStreakModel
-from ..tasks.database_models import TaskCompletionModel, TaskModel 
+from .database_models import UserTaskStreak as UserTaskStreakDBModel
+from ..tasks.database_models import TaskCompletionModel as TaskCompletionDBModel, TaskModel as TaskDBModel 
 from ..tasks.models import TaskCompletionModel, TaskCompletionCreate, TaskCompletionUpdate
 from .models import UserTaskStreak, UserTaskStreakCreate, UserTaskStreakUpdate
 
@@ -17,11 +17,11 @@ router = APIRouter(prefix="/statistics", tags=["statistics"])
 def create_task_completion(completion: TaskCompletionCreate, db: Session = Depends(get_db)):
     """Create a new task completion"""
     # Check if task exists
-    task = db.query(TaskModel).filter(TaskModel.id == completion.task_id).first()
+    task = db.query(TaskDBModel).filter(TaskDBModel.id == completion.task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     
-    db_completion = TaskCompletionModel(
+    db_completion = TaskCompletionDBModel(
         task_id=completion.task_id,
         user_id=completion.user_id,
         completion_date=completion.completion_date,
@@ -51,16 +51,16 @@ def get_task_completions(
     db: Session = Depends(get_db)
 ):
     """Get task completions with optional filters"""
-    query = db.query(TaskCompletionModel)
+    query = db.query(TaskCompletionDBModel)
     
     if user_id:
-        query = query.filter(TaskCompletionModel.user_id == user_id)
+        query = query.filter(TaskCompletionDBModel.user_id == user_id)
     if task_id:
-        query = query.filter(TaskCompletionModel.task_id == task_id)
+        query = query.filter(TaskCompletionDBModel.task_id == task_id)
     if start_date:
-        query = query.filter(TaskCompletionModel.completion_date >= start_date)
+        query = query.filter(TaskCompletionDBModel.completion_date >= start_date)
     if end_date:
-        query = query.filter(TaskCompletionModel.completion_date <= end_date)
+        query = query.filter(TaskCompletionDBModel.completion_date <= end_date)
     
     completions = query.offset(skip).limit(limit).all()
     return completions
@@ -69,7 +69,7 @@ def get_task_completions(
 @router.get("/completions/{completion_id}", response_model=TaskCompletionModel)
 def get_task_completion(completion_id: int, db: Session = Depends(get_db)):
     """Get a specific task completion by ID"""
-    completion = db.query(TaskCompletionModel).filter(TaskCompletionModel.id == completion_id).first()
+    completion = db.query(TaskCompletionDBModel).filter(TaskCompletionDBModel.id == completion_id).first()
     if not completion:
         raise HTTPException(status_code=404, detail="Task completion not found")
     return completion
@@ -85,12 +85,12 @@ def get_user_task_streaks(
     db: Session = Depends(get_db)
 ):
     """Get user task streaks with optional filters"""
-    query = db.query(UserTaskStreakModel)
+    query = db.query(UserTaskStreakDBModel)
     
     if user_id:
-        query = query.filter(UserTaskStreakModel.user_id == user_id)
+        query = query.filter(UserTaskStreakDBModel.user_id == user_id)
     if task_id:
-        query = query.filter(UserTaskStreakModel.task_id == task_id)
+        query = query.filter(UserTaskStreakDBModel.task_id == task_id)
     
     streaks = query.offset(skip).limit(limit).all()
     return streaks
@@ -99,9 +99,9 @@ def get_user_task_streaks(
 @router.get("/streaks/{user_id}/{task_id}", response_model=UserTaskStreak)
 def get_user_task_streak(user_id: str, task_id: int, db: Session = Depends(get_db)):
     """Get streak for a specific user and task"""
-    streak = db.query(UserTaskStreakModel).filter(
-        UserTaskStreakModel.user_id == user_id,
-        UserTaskStreakModel.task_id == task_id
+    streak = db.query(UserTaskStreakDBModel).filter(
+        UserTaskStreakDBModel.user_id == user_id,
+        UserTaskStreakDBModel.task_id == task_id
     ).first()
     
     if not streak:
@@ -113,15 +113,15 @@ def get_user_task_streak(user_id: str, task_id: int, db: Session = Depends(get_d
 def create_user_task_streak(streak: UserTaskStreakCreate, db: Session = Depends(get_db)):
     """Create a new user task streak"""
     # Check if streak already exists
-    existing_streak = db.query(UserTaskStreakModel).filter(
-        UserTaskStreakModel.user_id == streak.user_id,
-        UserTaskStreakModel.task_id == streak.task_id
+    existing_streak = db.query(UserTaskStreakDBModel).filter(
+        UserTaskStreakDBModel.user_id == streak.user_id,
+        UserTaskStreakDBModel.task_id == streak.task_id
     ).first()
     
     if existing_streak:
         raise HTTPException(status_code=400, detail="Streak already exists for this user and task")
     
-    db_streak = UserTaskStreakModel(
+    db_streak = UserTaskStreakDBModel(
         task_id=streak.task_id,
         user_id=streak.user_id,
         current_streak=streak.current_streak,
@@ -140,14 +140,14 @@ def create_user_task_streak(streak: UserTaskStreakCreate, db: Session = Depends(
 
 def update_streak(task_id: int, user_id: str, completion_date: datetime, db: Session):
     """Update user task streak after completion"""
-    streak = db.query(UserTaskStreakModel).filter(
-        UserTaskStreakModel.user_id == user_id,
-        UserTaskStreakModel.task_id == task_id
+    streak = db.query(UserTaskStreakDBModel).filter(
+        UserTaskStreakDBModel.user_id == user_id,
+        UserTaskStreakDBModel.task_id == task_id
     ).first()
     
     if not streak:
         # Create new streak
-        streak = UserTaskStreakModel(
+        streak = UserTaskStreakDBModel(
             task_id=task_id,
             user_id=user_id,
             current_streak=1,

@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from ..core.database import get_db
-from .database_models import ScheduleModel as ScheduleModel
-from ..tasks.database_models import ScheduledTaskModel, TaskModel 
+from .database_models import ScheduleModel as ScheduleDBModel
+from ..tasks.database_models import ScheduledTaskModel as ScheduledTaskDBModel, TaskModel as TaskDBModel
 from .models import ScheduleModel, ScheduleCreate, ScheduleUpdate
-from ..tasks.models import ScheduledTaskModel, ScheduledTaskCreate, ScheduledTaskUpdate
+from ..tasks.models import ScheduledTaskModel, ScheduledTaskPdtCreate, ScheduledTaskPdtUpdate
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/schedules", tags=["schedules"])
 @router.post("/", response_model=ScheduleModel)
 def create_schedule(schedule: ScheduleCreate, db: Session = Depends(get_db)):
     """Create a new schedule"""
-    db_schedule = ScheduleModel(**schedule.dict())
+    db_schedule = ScheduleDBModel(**schedule.dict())
     db.add(db_schedule)
     db.commit()
     db.refresh(db_schedule)
@@ -25,14 +25,14 @@ def create_schedule(schedule: ScheduleCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[ScheduleModel])
 def get_schedules(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all schedules"""
-    schedules = db.query(ScheduleModel).offset(skip).limit(limit).all()
+    schedules = db.query(ScheduleDBModel).offset(skip).limit(limit).all()
     return schedules
 
 
 @router.get("/{schedule_id}", response_model=ScheduleModel)
 def get_schedule(schedule_id: int, db: Session = Depends(get_db)):
     """Get a specific schedule by ID"""
-    schedule = db.query(ScheduleModel).filter(ScheduleModel.id == schedule_id).first()
+    schedule = db.query(ScheduleDBModel).filter(ScheduleDBModel.id == schedule_id).first()
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     return schedule
@@ -45,7 +45,7 @@ def update_schedule(
     db: Session = Depends(get_db)
 ):
     """Update a schedule"""
-    schedule = db.query(ScheduleModel).filter(ScheduleModel.id == schedule_id).first()
+    schedule = db.query(ScheduleDBModel).filter(ScheduleDBModel.id == schedule_id).first()
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     
@@ -61,7 +61,7 @@ def update_schedule(
 @router.delete("/{schedule_id}")
 def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
     """Delete a schedule"""
-    schedule = db.query(ScheduleModel).filter(ScheduleModel.id == schedule_id).first()
+    schedule = db.query(ScheduleDBModel).filter(ScheduleDBModel.id == schedule_id).first()
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     
@@ -72,19 +72,19 @@ def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
 
 # Scheduled Task endpoints
 @router.post("/tasks", response_model=ScheduledTaskModel)
-def create_scheduled_task(scheduled_task: ScheduledTaskCreate, db: Session = Depends(get_db)):
+def create_scheduled_task(scheduled_task: ScheduledTaskPdtCreate, db: Session = Depends(get_db)):
     """Create a new scheduled task"""
     # Check if task exists
-    task = db.query(TaskModel).filter(TaskModel.id == scheduled_task.task_id).first()
+    task = db.query(TaskDBModel).filter(TaskDBModel.id == scheduled_task.task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     
     # Check if schedule exists
-    schedule = db.query(ScheduleModel).filter(ScheduleModel.id == scheduled_task.schedule_id).first()
+    schedule = db.query(ScheduleDBModel).filter(ScheduleDBModel.id == scheduled_task.schedule_id).first()
     if not schedule:
         raise HTTPException(status_code=404, detail="Schedule not found")
     
-    db_scheduled_task = ScheduledTaskModel(**scheduled_task.dict())
+    db_scheduled_task = ScheduledTaskDBModel(**scheduled_task.dict())
     db.add(db_scheduled_task)
     db.commit()
     db.refresh(db_scheduled_task)
@@ -100,12 +100,12 @@ def get_scheduled_tasks(
     db: Session = Depends(get_db)
 ):
     """Get scheduled tasks with optional filters"""
-    query = db.query(ScheduledTaskModel)
+    query = db.query(ScheduledTaskDBModel)
     
     if task_id:
-        query = query.filter(ScheduledTaskModel.task_id == task_id)
+        query = query.filter(ScheduledTaskDBModel.task_id == task_id)
     if schedule_id:
-        query = query.filter(ScheduledTaskModel.schedule_id == schedule_id)
+        query = query.filter(ScheduledTaskDBModel.schedule_id == schedule_id)
     
     scheduled_tasks = query.offset(skip).limit(limit).all()
     return scheduled_tasks
@@ -114,8 +114,8 @@ def get_scheduled_tasks(
 @router.get("/tasks/{scheduled_task_id}", response_model=ScheduledTaskModel)
 def get_scheduled_task(scheduled_task_id: int, db: Session = Depends(get_db)):
     """Get a specific scheduled task by ID"""
-    scheduled_task = db.query(ScheduledTaskModel).filter(
-        ScheduledTaskModel.id == scheduled_task_id
+    scheduled_task = db.query(ScheduledTaskDBModel).filter(
+        ScheduledTaskDBModel.id == scheduled_task_id
     ).first()
     if not scheduled_task:
         raise HTTPException(status_code=404, detail="Scheduled task not found")
@@ -125,12 +125,12 @@ def get_scheduled_task(scheduled_task_id: int, db: Session = Depends(get_db)):
 @router.put("/tasks/{scheduled_task_id}", response_model=ScheduledTaskModel)
 def update_scheduled_task(
     scheduled_task_id: int,
-    scheduled_task_update: ScheduledTaskUpdate,
+    scheduled_task_update: ScheduledTaskPdtUpdate,
     db: Session = Depends(get_db)
 ):
     """Update a scheduled task"""
-    scheduled_task = db.query(ScheduledTaskModel).filter(
-        ScheduledTaskModel.id == scheduled_task_id
+    scheduled_task = db.query(ScheduledTaskDBModel).filter(
+        ScheduledTaskDBModel.id == scheduled_task_id
     ).first()
     if not scheduled_task:
         raise HTTPException(status_code=404, detail="Scheduled task not found")
@@ -147,8 +147,8 @@ def update_scheduled_task(
 @router.delete("/tasks/{scheduled_task_id}")
 def delete_scheduled_task(scheduled_task_id: int, db: Session = Depends(get_db)):
     """Delete a scheduled task"""
-    scheduled_task = db.query(ScheduledTaskModel).filter(
-        ScheduledTaskModel.id == scheduled_task_id
+    scheduled_task = db.query(ScheduledTaskDBModel).filter(
+        ScheduledTaskDBModel.id == scheduled_task_id
     ).first()
     if not scheduled_task:
         raise HTTPException(status_code=404, detail="Scheduled task not found")

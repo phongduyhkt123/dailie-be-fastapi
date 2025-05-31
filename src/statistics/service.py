@@ -2,24 +2,24 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, date
 
+from tasks.pydantics.task_completion_pydantic import TaskCompletionPdtCreate, TaskCompletionPdtUpdate
+
 from .database_models import UserTaskStreak as UserTaskStreakModel
 from ..tasks.database_models import TaskCompletionModel, TaskModel 
-from ..tasks.models import TaskCompletionCreate, TaskCompletionUpdate
-from .models import UserTaskStreakCreate, UserTaskStreakUpdate
 
 
 class StatisticsService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_task_completion(self, completion: TaskCompletionCreate) -> Optional[TaskCompletionModel]:
+    def create_task_completion(self, completion: TaskCompletionPdtCreate) -> Optional[TaskCompletionModel]:
         """Record a task completion"""
         # Check if task exists
         task = self.db.query(TaskModel).filter(TaskModel.id == completion.task_id).first()
         if not task:
             return None
         
-        db_completion = TaskCompletionModel(**completion.dict())
+        db_completion = TaskCompletionModel(**completion.model_dump())
         self.db.add(db_completion)
         self.db.commit()
         self.db.refresh(db_completion)
@@ -61,14 +61,14 @@ class StatisticsService:
     def update_task_completion(
         self, 
         completion_id: int, 
-        completion_update: TaskCompletionUpdate
+        completion_update: TaskCompletionPdtUpdate
     ) -> Optional[TaskCompletionModel]:
         """Update a task completion"""
         completion = self.get_completion_by_id(completion_id)
         if not completion:
             return None
         
-        update_data = completion_update.dict(exclude_unset=True)
+        update_data = completion_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(completion, field, value)
         
