@@ -1,0 +1,93 @@
+{% extends "../../shared/templates/base.html" %}
+
+{% block title %}User Task Streaks - {{ config.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-fire"></i> User Task Streaks</h1>
+    <span class="badge bg-danger">Total: {{ (current_page - 1) * 20 + streaks|length }} streaks</span>
+</div>
+
+{% if streaks %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Task ID</th>
+                        <th>User ID</th>
+                        <th>Current Streak</th>
+                        <th>Longest Streak</th>
+                        <th>Last Completed</th>
+                        <th>Streak Started</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for streak in streaks %}
+                    <tr>
+                        <td>{{ streak.id }}</td>
+                        <td>{{ streak.task_id }}</td>
+                        <td><code>{{ streak.user_id }}</code></td>
+                        <td>
+                            <span class="badge 
+                                {% if streak.current_streak >= 7 %}bg-success
+                                {% elif streak.current_streak >= 3 %}bg-warning
+                                {% elif streak.current_streak > 0 %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ streak.current_streak }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ streak.longest_streak }}</span>
+                        </td>
+                        <td>{{ streak.last_completed_date.strftime('%Y-%m-%d %H:%M') if streak.last_completed_date else '-' }}</td>
+                        <td>{{ streak.streak_start_date.strftime('%Y-%m-%d %H:%M') if streak.streak_start_date else '-' }}</td>
+                        <td>{{ streak.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<nav aria-label="Streaks pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if current_page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="/admin/streaks?page={{ current_page - 1 }}">Previous</a>
+        </li>
+        {% endif %}
+        
+        {% for page_num in range(1, total_pages + 1) %}
+        {% if page_num == current_page %}
+        <li class="page-item active">
+            <span class="page-link">{{ page_num }}</span>
+        </li>
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" href="/admin/streaks?page={{ page_num }}">{{ page_num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if current_page < total_pages %}
+        <li class="page-item">
+            <a class="page-link" href="/admin/streaks?page={{ current_page + 1 }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> No user task streaks found.
+</div>
+{% endif %}
+{% endblock %}

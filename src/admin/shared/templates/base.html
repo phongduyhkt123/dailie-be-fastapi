@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ config.title }}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            background-color: #343a40;
+            padding-top: 20px;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 10px 20px;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #495057;
+        }
+        .card-stat {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .card-stat-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .card-stat-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .card-stat-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="text-center text-white mb-4">
+            <h4><i class="fas fa-cogs"></i> Dailee Admin</h4>
+        </div>
+        <nav class="nav flex-column">
+            <a class="nav-link {% if request.url.path == '/admin/' %}active{% endif %}" href="/admin/">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a class="nav-link {% if 'users' in request.url.path %}active{% endif %}" href="/admin/users">
+                <i class="fas fa-users"></i> Users
+            </a>
+            <a class="nav-link {% if 'tasks' in request.url.path and 'scheduled' not in request.url.path %}active{% endif %}" href="/admin/tasks">
+                <i class="fas fa-tasks"></i> Tasks
+            </a>
+            <a class="nav-link {% if 'schedules' in request.url.path and 'scheduled' not in request.url.path %}active{% endif %}" href="/admin/schedules">
+                <i class="fas fa-calendar"></i> Schedules
+            </a>
+            <a class="nav-link {% if 'scheduled-tasks' in request.url.path %}active{% endif %}" href="/admin/scheduled-tasks">
+                <i class="fas fa-clock"></i> Scheduled Tasks
+            </a>
+            <a class="nav-link {% if 'completions' in request.url.path %}active{% endif %}" href="/admin/completions">
+                <i class="fas fa-check-circle"></i> Completions
+            </a>
+            <a class="nav-link {% if 'streaks' in request.url.path %}active{% endif %}" href="/admin/streaks">
+                <i class="fas fa-fire"></i> Streaks
+            </a>
+            <hr class="text-white">
+            <a class="nav-link" href="/docs" target="_blank">
+                <i class="fas fa-book"></i> API Docs
+            </a>
+            <a class="nav-link" href="/">
+                <i class="fas fa-home"></i> Back to API
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

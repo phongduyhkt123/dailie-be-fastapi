@@ -1,0 +1,97 @@
+{% extends "../../shared/templates/base.html" %}
+
+{% block title %}Task Completions - {{ config.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-check-circle"></i> Task Completions</h1>
+    <span class="badge bg-success">Total: {{ (current_page - 1) * 20 + completions|length }} completions</span>
+</div>
+
+{% if completions %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Task ID</th>
+                        <th>User ID</th>
+                        <th>Completion Date</th>
+                        <th>Note</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for completion in completions %}
+                    <tr>
+                        <td>{{ completion.id }}</td>
+                        <td>{{ completion.task_id }}</td>
+                        <td><code>{{ completion.user_id }}</code></td>
+                        <td>{{ completion.completion_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if completion.note %}
+                            <span class="text-muted" data-bs-toggle="tooltip" title="{{ completion.note }}">
+                                {{ completion.note[:40] + '...' if completion.note|length > 40 else completion.note }}
+                            </span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>{{ completion.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<nav aria-label="Completions pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if current_page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="/admin/completions?page={{ current_page - 1 }}">Previous</a>
+        </li>
+        {% endif %}
+        
+        {% for page_num in range(1, total_pages + 1) %}
+        {% if page_num == current_page %}
+        <li class="page-item active">
+            <span class="page-link">{{ page_num }}</span>
+        </li>
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" href="/admin/completions?page={{ page_num }}">{{ page_num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if current_page < total_pages %}
+        <li class="page-item">
+            <a class="page-link" href="/admin/completions?page={{ current_page + 1 }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> No task completions found.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  return new bootstrap.Tooltip(tooltipTriggerEl)
+})
+</script>
+{% endblock %}

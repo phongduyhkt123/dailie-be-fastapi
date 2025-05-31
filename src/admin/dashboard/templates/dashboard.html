@@ -1,0 +1,132 @@
+{% extends "../../shared/templates/base.html" %}
+
+{% block title %}Dashboard - {{ config.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+    <small class="text-muted">Overview of your Dailee application</small>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <h3>{{ stats.total_users }}</h3>
+                <p class="mb-0">Total Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat-success">
+            <div class="card-body text-center">
+                <i class="fas fa-tasks fa-2x mb-2"></i>
+                <h3>{{ stats.total_tasks }}</h3>
+                <p class="mb-0">Total Tasks</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <h3>{{ stats.total_completions }}</h3>
+                <p class="mb-0">Completions</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat-info">
+            <div class="card-body text-center">
+                <i class="fas fa-fire fa-2x mb-2"></i>
+                <h3>{{ stats.active_streaks }}</h3>
+                <p class="mb-0">Active Streaks</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history"></i> Recent Task Completions</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.recent_completions %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Task ID</th>
+                                <th>User ID</th>
+                                <th>Completion Date</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for completion in stats.recent_completions %}
+                            <tr>
+                                <td>{{ completion.id }}</td>
+                                <td>{{ completion.task_id }}</td>
+                                <td>{{ completion.user_id }}</td>
+                                <td>{{ completion.completion_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ completion.note[:50] + '...' if completion.note and completion.note|length > 50 else completion.note or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No recent completions found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/admin/users" class="btn btn-outline-primary">
+                        <i class="fas fa-users"></i> Manage Users
+                    </a>
+                    <a href="/admin/tasks" class="btn btn-outline-success">
+                        <i class="fas fa-tasks"></i> Manage Tasks
+                    </a>
+                    <a href="/admin/completions" class="btn btn-outline-info">
+                        <i class="fas fa-check-circle"></i> View Completions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-external-link-alt"></i> External Links</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/docs" class="btn btn-outline-secondary" target="_blank">
+                        <i class="fas fa-book"></i> API Documentation
+                    </a>
+                    <a href="/redoc" class="btn btn-outline-secondary" target="_blank">
+                        <i class="fas fa-file-alt"></i> ReDoc Documentation
+                    </a>
+                    <a href="/" class="btn btn-outline-dark">
+                        <i class="fas fa-home"></i> Back to API
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
