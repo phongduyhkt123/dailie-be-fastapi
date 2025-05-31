@@ -19,5 +19,5 @@ class UserTaskStreakModel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    task = relationship("Task", back_populates="streaks")
+    task = relationship("TaskModel", back_populates="streaks")
     user = relationship("UserModel", back_populates="streaks")

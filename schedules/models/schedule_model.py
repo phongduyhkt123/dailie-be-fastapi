@@ -15,4 +15,4 @@ class ScheduleModel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    scheduled_tasks = relationship("ScheduledTask", back_populates="schedule")
+    scheduled_tasks = relationship("ScheduledTaskModel", back_populates="schedule")

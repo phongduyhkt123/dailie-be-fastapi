@@ -1,21 +1,16 @@
 from fastapi import APIRouter, Depends, Request, Query
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import List
-import os
 
 from core.database import get_db
 from tasks.models import TaskModel
 from admin.config import get_current_admin_user, ADMIN_CONFIG
 from admin.shared.models import AdminTaskResponse
+from admin.shared.templates_config import admin_templates
 
 # Create router
 router = APIRouter(prefix="/admin/tasks", tags=["admin-tasks"])
-
-# Setup templates
-templates_dir = os.path.join(os.path.dirname(__file__), "templates")
-templates = Jinja2Templates(directory=templates_dir)
 
 
 @router.get("", response_class=HTMLResponse)
@@ -32,7 +27,7 @@ async def admin_tasks(
     total_tasks = db.query(TaskModel).count()
     total_pages = (total_tasks + limit - 1) // limit
     
-    return templates.TemplateResponse(
+    return admin_templates.TemplateResponse(
         "tasks.html",
         {
             "request": request,

@@ -16,6 +16,6 @@ class TaskModel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    scheduled_tasks = relationship("ScheduledTask", back_populates="task")
-    completions = relationship("TaskCompletion", back_populates="task")
+    scheduled_tasks = relationship("ScheduledTaskModel", back_populates="task")
+    completions = relationship("TaskCompletionModel", back_populates="task")
     streaks = relationship("UserTaskStreakModel", back_populates="task")

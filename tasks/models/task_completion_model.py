@@ -17,4 +17,4 @@ class TaskCompletionModel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    task = relationship("Task", back_populates="completions")
+    task = relationship("TaskModel", back_populates="completions")
