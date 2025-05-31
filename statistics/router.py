@@ -1,13 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 from core.database import get_db
 from statistics.models import UserTaskStreakModel
 from tasks.models import TaskCompletionModel, TaskModel
 from tasks.pydantics import TaskCompletionPdtModel, TaskCompletionPdtCreate, TaskCompletionPdtUpdate
 from .pydantics import UserTaskStreakPdtModel, UserTaskStreakPdtCreate, UserTaskStreakPdtUpdate
+from beautiful_logging import monitor_endpoint_queriesi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session, joinedload, selectinload
+from typing import List, Optional
+from datetime import datetime, date, timezone
+
+from core.database import get_db
+from statistics.models import UserTaskStreakModel
+from tasks.models import TaskCompletionModel, TaskModel
+from tasks.pydantics import TaskCompletionPdtModel, TaskCompletionPdtCreate, TaskCompletionPdtUpdate
+from .pydantics import UserTaskStreakPdtModel, UserTaskStreakPdtCreate, UserTaskStreakPdtUpdate
+from logging_config import monitor_endpoint_queries
+from n_plus_one_detector import analyze_queries, monitor_n_plus_one
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
@@ -27,8 +39,8 @@ def create_task_completion(completion: TaskCompletionPdtCreate, db: Session = De
         completion_date=completion.completion_date,
         note=completion.note
     )
-    db_completion.created_at = datetime.utcnow()
-    db_completion.updated_at = datetime.utcnow()
+    db_completion.created_at = datetime.now(timezone.utc)
+    db_completion.updated_at = datetime.now(timezone.utc)
     
     db.add(db_completion)
     db.commit()
@@ -41,6 +53,7 @@ def create_task_completion(completion: TaskCompletionPdtCreate, db: Session = De
 
 
 @router.get("/completions", response_model=List[TaskCompletionPdtModel])
+@monitor_n_plus_one("GET /completions - Task Completions List")
 def get_task_completions(
     user_id: Optional[str] = None,
     task_id: Optional[int] = None,
@@ -50,8 +63,11 @@ def get_task_completions(
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    """Get task completions with optional filters"""
-    query = db.query(TaskCompletionModel)
+    """Get task completions with optional filters - OPTIMIZED to prevent N+1"""
+    # Use eager loading to prevent N+1 queries when accessing task details
+    query = db.query(TaskCompletionModel).options(
+        joinedload(TaskCompletionModel.task)  # Eager load task details
+    )
     
     if user_id:
         query = query.filter(TaskCompletionModel.user_id == user_id)
@@ -77,6 +93,7 @@ def get_task_completion(completion_id: int, db: Session = Depends(get_db)):
 
 # User Task Streaks
 @router.get("/streaks", response_model=List[UserTaskStreakPdtModel])
+@monitor_n_plus_one("GET /streaks - User Task Streaks List")
 def get_user_task_streaks(
     user_id: Optional[str] = None,
     task_id: Optional[int] = None,
@@ -84,8 +101,12 @@ def get_user_task_streaks(
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    """Get user task streaks with optional filters"""
-    query = db.query(UserTaskStreakModel)
+    """Get user task streaks with optional filters - OPTIMIZED to prevent N+1"""
+    # Use eager loading to prevent N+1 queries when accessing task/user details
+    query = db.query(UserTaskStreakModel).options(
+        joinedload(UserTaskStreakModel.task),
+        joinedload(UserTaskStreakModel.user)
+    )
     
     if user_id:
         query = query.filter(UserTaskStreakModel.user_id == user_id)
@@ -129,8 +150,8 @@ def create_user_task_streak(streak: UserTaskStreakPdtCreate, db: Session = Depen
         last_completed_date=streak.last_completed_date,
         streak_start_date=streak.streak_start_date
     )
-    db_streak.created_at = datetime.utcnow()
-    db_streak.updated_at = datetime.utcnow()
+    db_streak.created_at = datetime.now(timezone.utc)
+    db_streak.updated_at = datetime.now(timezone.utc)
     
     db.add(db_streak)
     db.commit()
@@ -155,8 +176,8 @@ def update_streak(task_id: int, user_id: str, completion_date: datetime, db: Ses
             last_completed_date=completion_date,
             streak_start_date=completion_date
         )
-        streak.created_at = datetime.utcnow()
-        streak.updated_at = datetime.utcnow()
+        streak.created_at = datetime.now(timezone.utc)
+        streak.updated_at = datetime.now(timezone.utc)
         db.add(streak)
     else:
         # Update existing streak
@@ -179,7 +200,7 @@ def update_streak(task_id: int, user_id: str, completion_date: datetime, db: Ses
             streak.streak_start_date = completion_date
         
         streak.last_completed_date = completion_date
-        streak.updated_at = datetime.utcnow()
+        streak.updated_at = datetime.now(timezone.utc)
     
     db.commit()
     return streak

@@ -17,6 +17,31 @@ def create_task(task: pydantic_models.TaskPdtCreate, db: Session = Depends(get_d
     return service.create_task(task)
 
 
+@router.post("/bulk", response_model=pydantic_models.TaskBulkImportResponse)
+def bulk_import_tasks(
+    bulk_request: pydantic_models.TaskBulkImportRequest, 
+    db: Session = Depends(get_db)
+):
+    """Bulk import tasks from JSON data"""
+    service = TaskService(db)
+    
+    try:
+        tasks, errors, created_count, updated_count, skipped_count = service.bulk_import_tasks(
+            bulk_request.tasks
+        )
+        
+        return pydantic_models.TaskBulkImportResponse(
+            success=len(errors) == 0,
+            created_count=created_count,
+            updated_count=updated_count,
+            skipped_count=skipped_count,
+            tasks=[pydantic_models.TaskPdtModel.model_validate(task) for task in tasks],
+            errors=errors
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Bulk import failed: {str(e)}")
+
+
 @router.get("/", response_model=List[pydantic_models.TaskPdtModel])
 def get_tasks(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all task definitions"""

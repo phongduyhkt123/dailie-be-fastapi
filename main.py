@@ -10,11 +10,13 @@ from statistics.router import router as statistics_router
 from schedules.router import router as schedules_router
 from auth.router import router as auth_router
 from admin.setup import setup_admin, init_admin_db
+from beautiful_logging import setup_logging
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    setup_logging()  # Setup SQL logging
     create_tables()
     await init_admin_db()
     yield

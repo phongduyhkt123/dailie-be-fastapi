@@ -1,12 +1,13 @@
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import datetime
+from typing import List, Optional, Tuple
+from datetime import datetime, timezone
 
 from .pydantics import (
     TaskPdtCreate, 
     TaskPdtUpdate, 
     ScheduledTaskPdtCreate, 
     ScheduledTaskPdtUpdate,
+    TaskBulkImportItem,
 )
 from .models.enums import TaskStatusEnum as TaskStatus
 from tasks.models import TaskModel, ScheduledTaskModel
@@ -22,13 +23,71 @@ class TaskService:
             title=task.title,
             type=task.type.value
         )
-        db_task.created_at = datetime.utcnow()
-        db_task.updated_at = datetime.utcnow()
+        db_task.created_at = datetime.now(timezone.utc)
+        db_task.updated_at = datetime.now(timezone.utc)
         
         self.db.add(db_task)
         self.db.commit()
         self.db.refresh(db_task)
         return db_task
+
+    def bulk_import_tasks(self, tasks: List[TaskBulkImportItem]) -> Tuple[List[TaskModel], List[str], int, int, int]:
+        """
+        Bulk import tasks from a list
+        Returns: (created_tasks, errors, created_count, updated_count, skipped_count)
+        """
+        created_tasks = []
+        errors = []
+        created_count = 0
+        updated_count = 0
+        skipped_count = 0
+        
+        for task_item in tasks:
+            try:
+                # If ID is provided, try to update existing task
+                if task_item.id is not None:
+                    existing_task = self.get_task_by_id(task_item.id)
+                    if existing_task:
+                        # Update existing task
+                        existing_task.title = task_item.title
+                        if task_item.type:
+                            existing_task.type = task_item.type.value
+                        existing_task.updated_at = datetime.now(timezone.utc)
+                        self.db.commit()
+                        self.db.refresh(existing_task)
+                        created_tasks.append(existing_task)
+                        updated_count += 1
+                        continue
+                    else:
+                        # ID provided but task doesn't exist, create with specific ID
+                        db_task = TaskModel(
+                            id=task_item.id,
+                            title=task_item.title,
+                            type=task_item.type.value if task_item.type else 'other'
+                        )
+                else:
+                    # No ID provided, create new task with auto-increment
+                    db_task = TaskModel(
+                        title=task_item.title,
+                        type=task_item.type.value if task_item.type else 'other'
+                    )
+                
+                db_task.created_at = datetime.now(timezone.utc)
+                db_task.updated_at = datetime.now(timezone.utc)
+                
+                self.db.add(db_task)
+                self.db.commit()
+                self.db.refresh(db_task)
+                created_tasks.append(db_task)
+                created_count += 1
+                
+            except Exception as e:
+                # Skip this task and log error
+                errors.append(f"Error processing task '{task_item.title}': {str(e)}")
+                skipped_count += 1
+                self.db.rollback()
+        
+        return created_tasks, errors, created_count, updated_count, skipped_count
 
     def get_tasks(self, skip: int = 0, limit: int = 100) -> List[TaskModel]:
         """Get all tasks with pagination"""
@@ -51,7 +110,7 @@ class TaskService:
             else:
                 setattr(task, field, value)
         
-        task.updated_at = datetime.utcnow()
+        task.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(task)
         return task
@@ -116,7 +175,7 @@ class TaskService:
             else:
                 setattr(scheduled_task, field, value)
         
-        scheduled_task.updated_at = datetime.utcnow()
+        scheduled_task.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(scheduled_task)
         return scheduled_task
@@ -138,11 +197,11 @@ class TaskService:
             return None
         
         scheduled_task.status = TaskStatus.COMPLETE.value
-        scheduled_task.completed_at = datetime.utcnow()
+        scheduled_task.completed_at = datetime.now(timezone.utc)
         if note:
             scheduled_task.note = note
         
-        scheduled_task.updated_at = datetime.utcnow()
+        scheduled_task.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(scheduled_task)
         return scheduled_task

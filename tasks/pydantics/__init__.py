@@ -5,6 +5,9 @@ from .task_pydantic import (
     TaskPdtCreate,
     TaskPdtUpdate,
     TaskPdtModel,
+    TaskBulkImportItem,
+    TaskBulkImportRequest,
+    TaskBulkImportResponse,
 )
 
 from .scheduled_task_pydantic import (
@@ -27,6 +30,9 @@ __all__ = [
     "TaskPdtCreate", 
     "TaskPdtUpdate",
     "TaskPdtModel",
+    "TaskBulkImportItem",
+    "TaskBulkImportRequest",
+    "TaskBulkImportResponse",
     
     # Scheduled task models
     "ScheduledTaskPdtBaseModel",

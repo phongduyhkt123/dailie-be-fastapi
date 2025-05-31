@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from tasks.models.enums import TaskTypeEnum
 
@@ -25,3 +25,23 @@ class TaskPdtModel(TaskPdtBase):
     
     class Config:
         from_attributes = True
+
+
+# Bulk import models
+class TaskBulkImportItem(BaseModel):
+    id: Optional[int] = None  # Optional ID for existing tasks
+    title: str = Field(..., min_length=1, max_length=200)
+    type: Optional[TaskTypeEnum] = TaskTypeEnum.OTHER
+
+
+class TaskBulkImportRequest(BaseModel):
+    tasks: List[TaskBulkImportItem] = Field(..., min_items=1)
+
+
+class TaskBulkImportResponse(BaseModel):
+    success: bool
+    created_count: int
+    updated_count: int
+    skipped_count: int
+    tasks: List[TaskPdtModel]
+    errors: List[str] = []

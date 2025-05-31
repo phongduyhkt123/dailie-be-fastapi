@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     api_port: int = 8000
     debug: bool = True
     
+    # Logging settings
+    log_sql: bool = True  # Enable SQL query logging
+    log_level: str = "INFO"  # Logging level
+    
     # Security settings
     secret_key: str = "your-secret-key-here"
     algorithm: str = "HS256"

@@ -10,7 +10,9 @@ engine = create_engine(
     pool_pre_ping=True,
     pool_recycle=300,
     pool_size=10,
-    max_overflow=20
+    max_overflow=20,
+    echo=settings.log_sql,  # Enable SQL logging when log_sql is True
+    echo_pool=settings.debug  # Enable connection pool logging when debug is True
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

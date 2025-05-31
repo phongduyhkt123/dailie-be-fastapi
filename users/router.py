@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core.database import get_db
 from users.models import UserModel as UserModel
@@ -28,8 +28,8 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         name=user.name,
         email=user.email
     )
-    db_user.created_at = datetime.utcnow()
-    db_user.updated_at = datetime.utcnow()
+    db_user.created_at = datetime.now(timezone.utc)
+    db_user.updated_at = datetime.now(timezone.utc)
     
     db.add(db_user)
     db.commit()
@@ -72,7 +72,7 @@ def update_user(user_id: str, user_update: UserUpdate, db: Session = Depends(get
             raise HTTPException(status_code=400, detail="Email already registered")
         user.email = user_update.email
     
-    user.updated_at = datetime.utcnow()
+    user.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(user)
     return user
