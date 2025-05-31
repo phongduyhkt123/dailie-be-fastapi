@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..core.database.models import User as UserModel
+from .database_models import User as UserModel
 from .models import UserCreate, UserUpdate
 
 

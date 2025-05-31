@@ -29,5 +29,12 @@ def get_db():
 
 def create_tables():
     """Create all tables"""
-    from .models import Base
+    # Import all models to ensure they're registered with Base
+    from .base import Base
+    from ...tasks.database_models import TaskModel, ScheduledTaskModel, TaskCompletionModel
+    from ...users.database_models import User
+    from ...schedules.database_models import ScheduleModel
+    from ...statistics.database_models import UserTaskStreak
+    
+    # Create all tables
     Base.metadata.create_all(bind=engine)

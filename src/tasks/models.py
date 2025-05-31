@@ -20,21 +20,21 @@ class TaskStatus(str, Enum):
     IN_PROGRESS = "in_progress"
 
 
-class TaskBase(BaseModel):
+class TaskPdtBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     type: TaskType = TaskType.OTHER
 
 
-class TaskCreate(TaskBase):
+class TaskPdtCreate(TaskPdtBase):
     pass
 
 
-class TaskUpdate(BaseModel):
+class TaskPdtUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     type: Optional[TaskType] = None
 
 
-class Task(TaskBase):
+class TaskPdtModel(TaskPdtBase):
     id: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -43,7 +43,7 @@ class Task(TaskBase):
         from_attributes = True
 
 
-class ScheduledTaskBase(BaseModel):
+class ScheduledTaskPdtBaseModel(BaseModel):
     task_id: int
     date: datetime
     status: TaskStatus = TaskStatus.PENDING
@@ -53,43 +53,43 @@ class ScheduledTaskBase(BaseModel):
     schedule_id: int
 
 
-class ScheduledTaskCreate(ScheduledTaskBase):
+class ScheduledTaskPdtCreate(ScheduledTaskPdtBaseModel):
     pass
 
 
-class ScheduledTaskUpdate(BaseModel):
+class ScheduledTaskPdtUpdate(BaseModel):
     status: Optional[TaskStatus] = None
     priority: Optional[int] = None
     note: Optional[str] = None
     completed_at: Optional[datetime] = None
 
 
-class ScheduledTask(ScheduledTaskBase):
+class ScheduledTaskPdtModel(ScheduledTaskPdtBaseModel):
     id: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    task: Optional[Task] = None
+    task: Optional[TaskPdtModel] = None
     
     class Config:
         from_attributes = True
 
 
-class TaskCompletionBase(BaseModel):
+class TaskCompletionPdtBase(BaseModel):
     task_id: int
     user_id: str
     completion_date: datetime
     note: Optional[str] = None
 
 
-class TaskCompletionCreate(TaskCompletionBase):
+class TaskCompletionPdtCreate(TaskCompletionPdtBase):
     pass
 
 
-class TaskCompletionUpdate(BaseModel):
+class TaskCompletionPdtUpdate(BaseModel):
     note: Optional[str] = None
 
 
-class TaskCompletion(TaskCompletionBase):
+class TaskCompletionPdtModel(TaskCompletionPdtBase):
     id: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

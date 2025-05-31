@@ -1,11 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from ..core.database.models import (
-    Schedule as ScheduleModel,
-    ScheduledTask as ScheduledTaskModel,
-    Task as TaskModel
-)
+from .database_models import ScheduleModel as ScheduleModel
+from ..tasks.database_models import ScheduledTaskModel, TaskModel 
 from .models import ScheduleCreate, ScheduleUpdate
 from ..tasks.models import ScheduledTaskCreate, ScheduledTaskUpdate
 

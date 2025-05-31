@@ -2,30 +2,30 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 
-class Token(BaseModel):
+class TokenPdt(BaseModel):
     access_token: str
     token_type: str
 
 
-class TokenData(BaseModel):
+class TokenDataPdt(BaseModel):
     username: Optional[str] = None
 
 
-class UserLogin(BaseModel):
+class UserLoginPdt(BaseModel):
     email: EmailStr
     password: str
 
 
-class UserRegister(BaseModel):
+class UserRegisterPdt(BaseModel):
     name: str
     email: EmailStr
     password: str
 
 
-class PasswordReset(BaseModel):
+class PasswordResetPdt(BaseModel):
     email: EmailStr
 
 
-class PasswordUpdate(BaseModel):
+class PasswordUpdatePdt(BaseModel):
     current_password: str
     new_password: str

@@ -2,8 +2,11 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
-from ..core.database.models import Task as TaskModel, ScheduledTask as ScheduledTaskModel
-from .models import TaskCreate, TaskUpdate, ScheduledTaskCreate, ScheduledTaskUpdate
+from tasks.models import TaskCreate
+
+from .database_models import TaskModel, ScheduledTaskModel
+# Import Pydantic models from the standalone models.py file
+from .models import TaskModel, ScheduledTaskModel
 
 
 class TaskService:
@@ -86,3 +89,57 @@ class TaskService:
             query = query.filter(ScheduledTaskModel.task_id == task_id)
         
         return query.offset(skip).limit(limit).all()
+
+    def get_scheduled_task_by_id(self, scheduled_task_id: int) -> Optional[ScheduledTaskModel]:
+        """Get a specific scheduled task by ID"""
+        return self.db.query(ScheduledTaskModel).filter(
+            ScheduledTaskModel.id == scheduled_task_id
+        ).first()
+
+    def update_scheduled_task(
+        self, 
+        scheduled_task_id: int, 
+        scheduled_task_update: ScheduledTaskUpdate
+    ) -> Optional[ScheduledTaskModel]:
+        """Update a scheduled task"""
+        scheduled_task = self.get_scheduled_task_by_id(scheduled_task_id)
+        if not scheduled_task:
+            return None
+        
+        update_data = scheduled_task_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            if field == 'status' and value:
+                setattr(scheduled_task, field, value.value)
+            else:
+                setattr(scheduled_task, field, value)
+        
+        scheduled_task.updated_at = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(scheduled_task)
+        return scheduled_task
+
+    def delete_scheduled_task(self, scheduled_task_id: int) -> bool:
+        """Delete a scheduled task"""
+        scheduled_task = self.get_scheduled_task_by_id(scheduled_task_id)
+        if not scheduled_task:
+            return False
+        
+        self.db.delete(scheduled_task)
+        self.db.commit()
+        return True
+
+    def complete_scheduled_task(self, scheduled_task_id: int, note: Optional[str] = None) -> Optional[ScheduledTaskModel]:
+        """Mark a scheduled task as complete"""
+        scheduled_task = self.get_scheduled_task_by_id(scheduled_task_id)
+        if not scheduled_task:
+            return None
+        
+        scheduled_task.status = TaskStatus.COMPLETE.value
+        scheduled_task.completed_at = datetime.utcnow()
+        if note:
+            scheduled_task.note = note
+        
+        scheduled_task.updated_at = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(scheduled_task)
+        return scheduled_task

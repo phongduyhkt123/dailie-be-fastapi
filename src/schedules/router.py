@@ -3,19 +3,16 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from ..core.database import get_db
-from ..core.database.models import (
-    Schedule as ScheduleModel,
-    ScheduledTask as ScheduledTaskModel,
-    Task as TaskModel
-)
-from .models import Schedule, ScheduleCreate, ScheduleUpdate
-from ..tasks.models import ScheduledTask, ScheduledTaskCreate, ScheduledTaskUpdate
+from .database_models import ScheduleModel as ScheduleModel
+from ..tasks.database_models import ScheduledTaskModel, TaskModel 
+from .models import ScheduleModel, ScheduleCreate, ScheduleUpdate
+from ..tasks.models import ScheduledTaskModel, ScheduledTaskCreate, ScheduledTaskUpdate
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
 
 # Schedule endpoints
-@router.post("/", response_model=Schedule)
+@router.post("/", response_model=ScheduleModel)
 def create_schedule(schedule: ScheduleCreate, db: Session = Depends(get_db)):
     """Create a new schedule"""
     db_schedule = ScheduleModel(**schedule.dict())
@@ -25,14 +22,14 @@ def create_schedule(schedule: ScheduleCreate, db: Session = Depends(get_db)):
     return db_schedule
 
 
-@router.get("/", response_model=List[Schedule])
+@router.get("/", response_model=List[ScheduleModel])
 def get_schedules(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all schedules"""
     schedules = db.query(ScheduleModel).offset(skip).limit(limit).all()
     return schedules
 
 
-@router.get("/{schedule_id}", response_model=Schedule)
+@router.get("/{schedule_id}", response_model=ScheduleModel)
 def get_schedule(schedule_id: int, db: Session = Depends(get_db)):
     """Get a specific schedule by ID"""
     schedule = db.query(ScheduleModel).filter(ScheduleModel.id == schedule_id).first()
@@ -41,7 +38,7 @@ def get_schedule(schedule_id: int, db: Session = Depends(get_db)):
     return schedule
 
 
-@router.put("/{schedule_id}", response_model=Schedule)
+@router.put("/{schedule_id}", response_model=ScheduleModel)
 def update_schedule(
     schedule_id: int, 
     schedule_update: ScheduleUpdate, 
@@ -74,7 +71,7 @@ def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
 
 
 # Scheduled Task endpoints
-@router.post("/tasks", response_model=ScheduledTask)
+@router.post("/tasks", response_model=ScheduledTaskModel)
 def create_scheduled_task(scheduled_task: ScheduledTaskCreate, db: Session = Depends(get_db)):
     """Create a new scheduled task"""
     # Check if task exists
@@ -94,7 +91,7 @@ def create_scheduled_task(scheduled_task: ScheduledTaskCreate, db: Session = Dep
     return db_scheduled_task
 
 
-@router.get("/tasks", response_model=List[ScheduledTask])
+@router.get("/tasks", response_model=List[ScheduledTaskModel])
 def get_scheduled_tasks(
     task_id: Optional[int] = None,
     schedule_id: Optional[int] = None,
@@ -114,7 +111,7 @@ def get_scheduled_tasks(
     return scheduled_tasks
 
 
-@router.get("/tasks/{scheduled_task_id}", response_model=ScheduledTask)
+@router.get("/tasks/{scheduled_task_id}", response_model=ScheduledTaskModel)
 def get_scheduled_task(scheduled_task_id: int, db: Session = Depends(get_db)):
     """Get a specific scheduled task by ID"""
     scheduled_task = db.query(ScheduledTaskModel).filter(
@@ -125,7 +122,7 @@ def get_scheduled_task(scheduled_task_id: int, db: Session = Depends(get_db)):
     return scheduled_task
 
 
-@router.put("/tasks/{scheduled_task_id}", response_model=ScheduledTask)
+@router.put("/tasks/{scheduled_task_id}", response_model=ScheduledTaskModel)
 def update_scheduled_task(
     scheduled_task_id: int,
     scheduled_task_update: ScheduledTaskUpdate,

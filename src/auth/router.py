@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from ..core.database import get_db
 from ..core.config import settings
-from .models import Token, UserRegister
+from .models import TokenPdt, UserRegisterPdt
 from .service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -18,7 +18,7 @@ def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
 
 
 @router.post("/register", response_model=dict)
-def register(user_data: UserRegister, auth_service: AuthService = Depends(get_auth_service)):
+def register(user_data: UserRegisterPdt, auth_service: AuthService = Depends(get_auth_service)):
     """Register a new user"""
     user = auth_service.register_user(user_data)
     if not user:
@@ -29,7 +29,7 @@ def register(user_data: UserRegister, auth_service: AuthService = Depends(get_au
     return {"message": "User registered successfully", "user_id": user.id}
 
 
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=TokenPdt)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     auth_service: AuthService = Depends(get_auth_service)

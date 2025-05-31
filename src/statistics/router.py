@@ -4,19 +4,16 @@ from typing import List, Optional
 from datetime import datetime, date
 
 from ..core.database import get_db
-from ..core.database.models import (
-    TaskCompletion as TaskCompletionModel,
-    UserTaskStreak as UserTaskStreakModel,
-    Task as TaskModel
-)
-from ..tasks.models import TaskCompletion, TaskCompletionCreate, TaskCompletionUpdate
+from .database_models import UserTaskStreak as UserTaskStreakModel
+from ..tasks.database_models import TaskCompletionModel, TaskModel 
+from ..tasks.models import TaskCompletionModel, TaskCompletionCreate, TaskCompletionUpdate
 from .models import UserTaskStreak, UserTaskStreakCreate, UserTaskStreakUpdate
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
 
 # Task Completions
-@router.post("/completions", response_model=TaskCompletion)
+@router.post("/completions", response_model=TaskCompletionModel)
 def create_task_completion(completion: TaskCompletionCreate, db: Session = Depends(get_db)):
     """Create a new task completion"""
     # Check if task exists
@@ -43,7 +40,7 @@ def create_task_completion(completion: TaskCompletionCreate, db: Session = Depen
     return db_completion
 
 
-@router.get("/completions", response_model=List[TaskCompletion])
+@router.get("/completions", response_model=List[TaskCompletionModel])
 def get_task_completions(
     user_id: Optional[str] = None,
     task_id: Optional[int] = None,
@@ -69,7 +66,7 @@ def get_task_completions(
     return completions
 
 
-@router.get("/completions/{completion_id}", response_model=TaskCompletion)
+@router.get("/completions/{completion_id}", response_model=TaskCompletionModel)
 def get_task_completion(completion_id: int, db: Session = Depends(get_db)):
     """Get a specific task completion by ID"""
     completion = db.query(TaskCompletionModel).filter(TaskCompletionModel.id == completion_id).first()

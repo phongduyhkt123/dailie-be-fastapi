@@ -5,8 +5,8 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 
 from ..core.config import settings
-from ..core.database.models import User as UserModel
-from .models import UserLogin, UserRegister
+from ..users.database_models import User as UserModel
+from .models import UserLoginPdt, UserRegisterPdt
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -44,7 +44,7 @@ class AuthService:
         encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm="HS256")
         return encoded_jwt
 
-    def register_user(self, user_data: UserRegister) -> Optional[UserModel]:
+    def register_user(self, user_data: UserRegisterPdt) -> Optional[UserModel]:
         """Register a new user"""
         # Check if user already exists
         existing_user = self.db.query(UserModel).filter(UserModel.email == user_data.email).first()

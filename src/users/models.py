@@ -3,22 +3,22 @@ from typing import Optional
 from datetime import datetime
 
 
-class UserBase(BaseModel):
+class UserBasePdtModel(BaseModel):
     user_id: str = Field(..., description="Business logic user ID (like auth ID)")
     name: str = Field(..., min_length=1, max_length=100)
     email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
 
 
-class UserCreate(UserBase):
+class UserPdtCreate(UserBasePdtModel):
     pass
 
 
-class UserUpdate(BaseModel):
+class UserPdtUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[str] = Field(None, pattern=r'^[^@]+@[^@]+\.[^@]+$')
 
 
-class User(UserBase):
+class UserPdtModel(UserBasePdtModel):
     id: Optional[int] = None  # Database ID
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

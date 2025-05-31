@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime
 
 from ..core.database import get_db
-from ..core.database.models import User as UserModel
+from .database_models import User as UserModel
 from .models import User, UserCreate, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])

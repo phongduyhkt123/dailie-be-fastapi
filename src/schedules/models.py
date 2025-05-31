@@ -1,27 +1,27 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
-from ..tasks.models import ScheduledTask
+from ..tasks.models import ScheduledTaskModel
 
 
-class ScheduleBase(BaseModel):
+class ScheduleBasePdtModel(BaseModel):
     date: datetime
     user_id: str = Field(..., description="User ID for multi-user support")
 
 
-class ScheduleCreate(ScheduleBase):
+class SchedulePdtCreate(ScheduleBasePdtModel):
     pass
 
 
-class ScheduleUpdate(BaseModel):
+class SchedulePdtUpdate(BaseModel):
     date: Optional[datetime] = None
 
 
-class Schedule(ScheduleBase):
+class SchedulePdtModel(ScheduleBasePdtModel):
     id: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    schedule_tasks: Optional[List[ScheduledTask]] = []
+    schedule_tasks: Optional[List[ScheduledTaskModel]] = []
     
     class Config:
         from_attributes = True

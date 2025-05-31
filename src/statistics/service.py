@@ -2,11 +2,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, date
 
-from ..core.database.models import (
-    TaskCompletion as TaskCompletionModel,
-    UserTaskStreak as UserTaskStreakModel,
-    Task as TaskModel
-)
+from .database_models import UserTaskStreak as UserTaskStreakModel
+from ..tasks.database_models import TaskCompletionModel, TaskModel 
 from ..tasks.models import TaskCompletionCreate, TaskCompletionUpdate
 from .models import UserTaskStreakCreate, UserTaskStreakUpdate
 
