@@ -18,7 +18,7 @@ from src.tasks.models.scheduled_task_model import ScheduledTaskModel
 from src.tasks.models.task_completion_model import TaskCompletionModel
 from src.users.models.user_model import User
 from src.schedules.models.schedule_model import ScheduleModel
-from src.statistics.models.user_task_streak_model import UserTaskStreak
+from src.statistics.models.user_task_streak_model import UserTaskStreakModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
