@@ -13,5 +13,5 @@ python-dotenv
 aiofiles
 jinja2
 passlib[bcrypt]
-# rich
-# sqlparse
+rich
+sqlparse
