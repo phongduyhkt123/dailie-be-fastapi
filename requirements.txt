@@ -2,6 +2,7 @@ fastapi
 uvicorn
 pydantic
 pydantic-settings
+email-validator
 sqlalchemy
 alembic
 python-multipart
@@ -12,3 +13,5 @@ python-dotenv
 aiofiles
 jinja2
 passlib[bcrypt]
+# rich
+# sqlparse

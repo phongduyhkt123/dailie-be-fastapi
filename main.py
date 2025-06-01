@@ -54,16 +54,14 @@ app.include_router(history_router, prefix="/api/v1")
 admin_app = setup_admin(app, settings.database_url_complete)
 
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Dailee Task Management API", 
-        "version": "1.0.0",
-        "admin_url": "/admin",
-        "docs_url": "/docs"
-    }
-
-
+# Health check endpoint for deployment
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    """Health check endpoint for load balancers and monitoring"""
+    return {"status": "healthy", "version": "1.0.0"}
+
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {"message": "Dailee API is running", "version": "1.0.0"}

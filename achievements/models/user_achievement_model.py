@@ -7,7 +7,7 @@ from core.models import BaseModel
 class UserAchievementModel(BaseModel):
     __tablename__ = "user_achievements"
     
-    user_id = Column(String(50), nullable=False, index=True)
+    user_id = Column(String(50), ForeignKey("users.user_id"), nullable=False, index=True)
     achievement_id = Column(String(100), ForeignKey("achievements.achievement_id"), nullable=False, index=True)
     earned_at = Column(DateTime(timezone=True), nullable=True)  # Nullable if not yet earned
     current_progress = Column(Integer, nullable=True, default=0)
@@ -15,4 +15,4 @@ class UserAchievementModel(BaseModel):
     
     # Relationships
     achievement = relationship("AchievementModel", back_populates="user_achievements")
-    # user = relationship("UserModel", back_populates="user_achievements")  # Uncomment when UserModel exists
+    user = relationship("UserModel", back_populates="user_achievements")
