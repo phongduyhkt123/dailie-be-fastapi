@@ -10,15 +10,19 @@ from alembic import context
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 # Import your database configuration and models
-from src.core.config import settings
-from src.core.database.base import Base
+from core.config import settings
+from core.database.base import Base
+from core.models import BaseModel
 # Import all models so they're registered with Base
-from src.tasks.models.task_model import TaskModel
-from src.tasks.models.scheduled_task_model import ScheduledTaskModel
-from src.tasks.models.task_completion_model import TaskCompletionModel
-from src.users.models.user_model import User
-from src.schedules.models.schedule_model import ScheduleModel
-from src.statistics.models.user_task_streak_model import UserTaskStreakModel
+from tasks.models.task_model import TaskModel
+from tasks.models.scheduled_task_model import ScheduledTaskModel
+from tasks.models.task_completion_model import TaskCompletionModel
+from users.models import UserModel
+from schedules.models.schedule_model import ScheduleModel
+from statistics.models.user_task_streak_model import UserTaskStreakModel
+from achievements.models.achievement_model import AchievementModel
+from achievements.models.user_achievement_model import UserAchievementModel
+from history.models.history_model import HistoryModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

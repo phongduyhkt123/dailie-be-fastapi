@@ -88,3 +88,12 @@ def delete_user(user_id: str, db: Session = Depends(get_db)):
     db.delete(user)
     db.commit()
     return {"message": "User deleted successfully"}
+
+
+@router.get("/by-email/{email}", response_model=User)
+def get_user_by_email(email: str, db: Session = Depends(get_db)):
+    """Get a user by email address"""
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user

@@ -7,6 +7,7 @@ from core.database import get_db
 from core.config import settings
 from .pydantics import TokenPdt, UserRegisterPdt
 from .service import AuthService
+from users.models import UserModel
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -15,6 +16,29 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
     return AuthService(db)
+
+
+def get_current_authenticated_user(
+    token: str = Depends(oauth2_scheme),
+    auth_service: AuthService = Depends(get_auth_service)
+) -> UserModel:
+    """Dependency to get the current authenticated user"""
+    email = auth_service.verify_token(token)
+    if email is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    user = auth_service.get_user_by_email(email)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+    
+    return user
 
 
 @router.post("/register", response_model=dict)
@@ -53,23 +77,7 @@ def login(
 
 @router.get("/me")
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    auth_service: AuthService = Depends(get_auth_service)
+    current_user: UserModel = Depends(get_current_authenticated_user)
 ):
     """Get current authenticated user"""
-    email = auth_service.verify_token(token)
-    if email is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    user = auth_service.get_user_by_email(email)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
-        )
-    
-    return {"id": user.id, "name": user.name, "email": user.email}
+    return {"id": current_user.id, "name": current_user.name, "email": current_user.email}

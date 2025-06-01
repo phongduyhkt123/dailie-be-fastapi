@@ -4,9 +4,9 @@ Database migration and setup script
 """
 import asyncio
 from sqlalchemy import text
-from src.database.database import engine
-from src.database.models import Base
-from src.config import settings
+from database.database import engine
+from database.models import Base
+from config import settings
 
 
 def create_database():

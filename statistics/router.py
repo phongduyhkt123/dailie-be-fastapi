@@ -1,14 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List, Optional
-from datetime import datetime, date, timezone
-
-from core.database import get_db
-from statistics.models import UserTaskStreakModel
-from tasks.models import TaskCompletionModel, TaskModel
-from tasks.pydantics import TaskCompletionPdtModel, TaskCompletionPdtCreate, TaskCompletionPdtUpdate
-from .pydantics import UserTaskStreakPdtModel, UserTaskStreakPdtCreate, UserTaskStreakPdtUpdate
-from beautiful_logging import monitor_endpoint_queriesi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload, selectinload
 from typing import List, Optional
 from datetime import datetime, date, timezone
@@ -89,6 +79,60 @@ def get_task_completion(completion_id: int, db: Session = Depends(get_db)):
     if not completion:
         raise HTTPException(status_code=404, detail="Task completion not found")
     return completion
+
+
+@router.put("/completions/{completion_id}", response_model=TaskCompletionPdtModel)
+def update_task_completion(completion_id: int, completion_update: TaskCompletionPdtUpdate, db: Session = Depends(get_db)):
+    """Update a task completion"""
+    completion = db.query(TaskCompletionModel).filter(TaskCompletionModel.id == completion_id).first()
+    if not completion:
+        raise HTTPException(status_code=404, detail="Task completion not found")
+    
+    update_data = completion_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(completion, field, value)
+    
+    completion.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(completion)
+    return completion
+
+
+@router.delete("/completions/{completion_id}")
+def delete_task_completion(completion_id: int, db: Session = Depends(get_db)):
+    """Delete a task completion"""
+    completion = db.query(TaskCompletionModel).filter(TaskCompletionModel.id == completion_id).first()
+    if not completion:
+        raise HTTPException(status_code=404, detail="Task completion not found")
+    
+    db.delete(completion)
+    db.commit()
+    return {"message": "Task completion deleted successfully"}
+
+
+@router.get("/completions/date-range", response_model=dict)
+def get_completions_by_date_range(
+    user_id: str,
+    start_date: date,
+    end_date: date,
+    db: Session = Depends(get_db)
+):
+    """Get task completions grouped by date for a specific date range"""
+    completions = db.query(TaskCompletionModel).filter(
+        TaskCompletionModel.user_id == user_id,
+        TaskCompletionModel.completion_date >= start_date,
+        TaskCompletionModel.completion_date <= end_date
+    ).all()
+    
+    # Group completions by date
+    grouped_completions = {}
+    for completion in completions:
+        date_key = completion.completion_date.strftime("%Y-%m-%d")
+        if date_key not in grouped_completions:
+            grouped_completions[date_key] = []
+        grouped_completions[date_key].append(completion)
+    
+    return grouped_completions
 
 
 # User Task Streaks

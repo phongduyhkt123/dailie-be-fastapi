@@ -1,19 +1,17 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 
-from core.database.base import Base
+from core.models import BaseModel
 
 
-class UserModel(Base):
+class UserModel(BaseModel):
     __tablename__ = "users"
     
-    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String(50), unique=True, nullable=False, index=True)
     name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
     streaks = relationship("UserTaskStreakModel", back_populates="user")
+    user_achievements = relationship("UserAchievementModel", back_populates="user")
+    history = relationship("HistoryModel", back_populates="user")

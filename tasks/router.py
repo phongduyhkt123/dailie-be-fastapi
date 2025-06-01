@@ -79,6 +79,55 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     return {"message": "Task deleted successfully"}
 
 
+@router.post("/export")
+def export_tasks_to_json(db: Session = Depends(get_db)):
+    """Export all tasks to JSON format"""
+    service = TaskService(db)
+    tasks = service.get_tasks()
+    
+    export_data = []
+    for task in tasks:
+        task_data = {
+            "title": task.title,
+            "description": task.description,
+            "category": task.category,
+            "difficulty": task.difficulty,
+            "estimated_duration": task.estimated_duration,
+            "tags": task.tags,
+            "is_template": task.is_template
+        }
+        export_data.append(task_data)
+    
+    return {"tasks": export_data}
+
+
+@router.post("/import")
+def import_tasks_from_json(import_data: dict, db: Session = Depends(get_db)):
+    """Import tasks from JSON format"""
+    try:
+        tasks_data = import_data.get("tasks", [])
+        service = TaskService(db)
+        imported_count = 0
+        
+        for task_data in tasks_data:
+            # Check if task already exists by title
+            from .models import TaskModel
+            existing_task = db.query(TaskModel).filter(
+                TaskModel.title == task_data["title"]
+            ).first()
+            
+            if not existing_task:
+                from tasks.pydantics import TaskPdtCreate
+                task_create = TaskPdtCreate(**task_data)
+                service.create_task(task_create)
+                imported_count += 1
+        
+        return {"message": f"Successfully imported {imported_count} tasks"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Import failed: {str(e)}")
+
+
 # Scheduled task endpoints
 @router.post("/scheduled", response_model=pydantic_models.ScheduledTaskPdtModel)
 def create_scheduled_task(scheduled_task: pydantic_models.ScheduledTaskPdtCreate, db: Session = Depends(get_db)):
